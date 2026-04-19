@@ -17,7 +17,7 @@
 --r:14px;
 --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
 --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
---fw:160px; --fh:260px;
+--fw:220px; --fh:320px;
 --app-h:100vh;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -97,26 +97,21 @@ border-bottom:1px solid rgba(255,255,255,.06);z-index:10;gap:6px
 .btn-quit{background:var(--surface2);border:none;border-radius:8px;padding:6px 12px;color:var(--text-dim);cursor:pointer;font-size:clamp(11px,2.8vw,13px);font-family:'Nunito',sans-serif;flex-shrink:0}
 .btn-quit:active{background:rgba(255,107,53,.25);color:var(--text)}
 
-.split{display:flex;flex:1;width:100%;height:100%;min-height:0;overflow:hidden;position:relative}
-
-/* Phone portrait → stack vertically */
-@media(max-width:599px) and (orientation:portrait){
-.split{flex-direction:column}
-.eye-panel{border-right:none!important}
-.eye-panel.weak-p{border-bottom:2px solid rgba(255,107,53,.18)!important}
+.split{display:flex;flex:1;width:100%;height:100%;min-height:0;overflow:hidden;position:relative;padding:12px}
+.mono-stage{
+  flex:1;width:100%;max-width:760px;margin:0 auto;
+  border-radius:18px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(255,107,53,.08),rgba(36,55,80,.55));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:56px 14px 18px;gap:14px;position:relative;overflow:hidden
 }
-
-.eye-panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;gap:12px;padding:40px 8px 10px;min-height:0}
-.eye-panel.weak-p{background:rgba(255,107,53,.04);border-right:2px solid rgba(255,107,53,.14)}
-.eye-panel.strong-p{background:rgba(78,205,196,.04)}
-
-.panel-badge{position:absolute;top:9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;padding:3px 10px;border-radius:20px;white-space:nowrap}
-.weak-p .panel-badge{background:rgba(255,107,53,.2);color:var(--weak)}
-.strong-p .panel-badge{background:rgba(78,205,196,.2);color:var(--strong)}
-
-.ct-overlay{position:absolute;inset:0;pointer-events:none;transition:background .3s}
-.passive-hint{font-size:clamp(11px,2.8vw,13px);color:var(--text-dim);text-align:center;max-width:200px;line-height:1.55;background:rgba(255,255,255,.04);border-radius:10px;padding:9px 13px}
-.passive-hint strong{color:var(--strong)}
+.panel-badge{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;padding:5px 12px;border-radius:20px;white-space:nowrap;background:rgba(255,107,53,.22);color:var(--weak)}
+.focus-note{font-size:clamp(11px,2.8vw,14px);color:var(--text-dim);text-align:center;max-width:320px;line-height:1.55;background:rgba(255,255,255,.04);border-radius:10px;padding:9px 13px}
+.focus-note strong{color:var(--accent2)}
+.occlusion-pill{
+  position:absolute;right:12px;top:12px;background:rgba(6,214,160,.18);color:var(--green);
+  border:1px solid rgba(6,214,160,.35);border-radius:999px;padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:.8px
+}
 
 .sess-prog{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.04);z-index:5}
 .sess-prog-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s linear}
@@ -177,9 +172,9 @@ border-bottom:1px solid rgba(255,255,255,.06);z-index:10;gap:6px
 
 /* ══════ iPad landscape tweaks ══════ */
 @media(min-width:768px){
-.eye-panel{gap:18px;padding:48px 16px 14px}
+.mono-stage{padding:62px 22px 22px;gap:18px}
 .pzl-choices{max-width:290px}
-.passive-hint{max-width:230px;font-size:14px}
+.focus-note{max-width:420px;font-size:14px}
 }
 </style>
 
@@ -201,30 +196,30 @@ border-bottom:1px solid rgba(255,255,255,.06);z-index:10;gap:6px
     <div class="eye-row">
       <div class="eye-dot weak"></div>
       <div class="eye-info">
-        <div class="eye-lbl">Mắt yếu (nhược thị)</div>
-        <div class="eye-desc">Mắt cần luyện tập — nhìn phần <strong>bên trái / phía trên</strong></div>
+        <div class="eye-lbl">Mắt luyện tập (mắt yếu)</div>
+        <div class="eye-desc">Mắt này nhìn toàn bộ màn hình game và tương tác trực tiếp.</div>
       </div>
     </div>
     <div class="eye-row">
       <div class="eye-dot strong"></div>
       <div class="eye-info">
-        <div class="eye-lbl">Mắt tốt</div>
-        <div class="eye-desc">Mắt khỏe — nhìn phần <strong>bên phải / phía dưới</strong> (tương phản thấp hơn)</div>
+        <div class="eye-lbl">Mắt còn lại</div>
+        <div class="eye-desc"><strong>Che kín 100%</strong> bằng miếng bịt mắt theo hướng dẫn bác sĩ trước khi chơi.</div>
       </div>
     </div>
   </div>
 
   <div class="contrast-box">
     <div class="contrast-head">
-      <span class="contrast-title">🎛️ Độ tương phản mắt tốt</span>
-      <span class="contrast-val" id="contrastLabel">30%</span>
+      <span class="contrast-title">🩺 Chế độ một mắt</span>
+      <span class="contrast-val" id="contrastLabel">100% che mắt</span>
     </div>
     <div class="slider-track">
-      <div class="slider-fill" id="sliderFill" style="width:30%"></div>
-      <div class="slider-knob" id="sliderKnob" style="left:30%"></div>
-      <input type="range" class="cslider" id="contrastSlider" min="10" max="70" value="30">
+      <div class="slider-fill" id="sliderFill" style="width:100%"></div>
+      <div class="slider-knob" id="sliderKnob" style="left:100%"></div>
+      <input type="range" class="cslider" id="contrastSlider" min="100" max="100" value="100" disabled>
     </div>
-    <div class="contrast-hint">Giảm tương phản bên mắt tốt → buộc não ưu tiên tín hiệu từ mắt yếu.<br>Bác sĩ thường khuyên bắt đầu ở 20–40%.</div>
+    <div class="contrast-hint">Ứng dụng đã tối ưu cho 1 mắt nhìn trực tiếp. Mắt còn lại cần bịt kín hoàn toàn trong suốt phiên chơi.</div>
   </div>
 
   <div class="divider"></div>
@@ -254,7 +249,7 @@ border-bottom:1px solid rgba(255,255,255,.06);z-index:10;gap:6px
 
 <button class="btn-start" id="startBtn">▶ Bắt đầu luyện tập!</button>
 
-  <p class="warn-note">⚠️ Dùng kính phân cực hoặc che một mắt theo hướng dẫn của bác sĩ. Chơi 15–30 phút/ngày.</p>
+  <p class="warn-note">⚠️ Chế độ hiện tại: một mắt hoạt động, một mắt bịt kín 100%. Nên luyện 15–30 phút/ngày theo chỉ định bác sĩ.</p>
 </div>
 
 <!-- GAME -->
@@ -270,15 +265,11 @@ border-bottom:1px solid rgba(255,255,255,.06);z-index:10;gap:6px
   </div>
 
   <div class="split" id="splitContainer">
-    <div class="eye-panel weak-p" id="weakPanel">
-      <div class="panel-badge">MẮT YẾU – CHỦ ĐỘNG</div>
+    <div class="mono-stage" id="weakPanel">
+      <div class="panel-badge">MẮT YẾU – TẬP TRUNG LUYỆN</div>
+      <div class="occlusion-pill">MẮT CÒN LẠI: BỊT 100%</div>
       <div id="weakGameArea"></div>
-    </div>
-    <div class="eye-panel strong-p" id="strongPanel">
-      <div class="panel-badge">MẮT TỐT – HỖ TRỢ</div>
-      <div id="strongGameArea"></div>
-      <div class="passive-hint"><strong>Nhìn vào đây</strong> bằng mắt tốt.<br>Nội dung mờ để não ưu tiên mắt yếu.</div>
-      <div class="ct-overlay" id="ctOverlay"></div>
+      <div class="focus-note"><strong>Chỉ dùng mắt luyện tập</strong> để nhìn và thao tác trong toàn bộ màn hình này.</div>
     </div>
   </div>
 
@@ -312,7 +303,7 @@ const $ = id => document.getElementById(id);
 
 // ── STATE ──
 const S = {
-  mode:'catch', contrast:30,
+  mode:'catch', contrast:100,
   score:0, hits:0, attempts:0,
   duration:120, remaining:120,
   tInterval:null, gLoop:null, pzAnswer:null,
@@ -332,16 +323,9 @@ function fieldSize() {
   const sc = $('splitContainer');
   if (!sc) return {w:160,h:240};
   const r = sc.getBoundingClientRect();
-  const portrait = window.innerWidth < 600 && window.innerHeight > window.innerWidth;
-  if (portrait) {
-    return {
-      w: Math.max(120, Math.min(r.width - 20, 340)),
-      h: Math.max(90,  Math.min((r.height / 2) - 62, 240))
-    };
-  }
   return {
-    w: Math.max(130, Math.min((r.width / 2) - 22, 380)),
-    h: Math.max(160, Math.min(r.height - 72, 440))
+    w: Math.max(170, Math.min(r.width - 44, 480)),
+    h: Math.max(220, Math.min(r.height - 96, 560))
   };
 }
 
@@ -352,13 +336,6 @@ function setField(w, h) {
 }
 
 // ── HOME ──
-$('contrastSlider').addEventListener('input', function() {
-  const v = +this.value; S.contrast = v;
-  $('contrastLabel').textContent = v + '%';
-  $('sliderFill').style.width = v + '%';
-  $('sliderKnob').style.left  = v + '%';
-});
-
 function selectMode(el) {
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
@@ -394,7 +371,6 @@ function startGame() {
     syncAppHeight();
     const fs = fieldSize(); setField(fs.w, fs.h);
     buildUI();
-    $('ctOverlay').style.background = `rgba(13,27,42,${((1 - S.contrast/100)*0.86).toFixed(2)})`;
     startTimer();
     if (S.mode==='catch'||S.mode==='pop') startTargets();
     if (S.mode==='trace')  startTrace();
@@ -421,21 +397,18 @@ function updHdr() {
 
 // ── BUILD UI ──
 function buildUI() {
-  const wa=$('weakGameArea'), sa=$('strongGameArea');
-  wa.innerHTML=''; sa.innerHTML='';
+  const wa=$('weakGameArea');
+  wa.innerHTML='';
 
   if (S.mode==='catch'||S.mode==='pop') {
     wa.innerHTML='<div class="catch-field" id="catchField"></div>';
-    sa.innerHTML='<div class="catch-field" id="catchGhost" style="opacity:.28;filter:blur(2px);pointer-events:none"></div>';
   }
   if (S.mode==='puzzle') {
     wa.innerHTML=`<div class="pzl-wrap"><div class="pzl-display" id="pzlTarget">❓</div><div class="pzl-choices" id="pzlChoices"></div></div>`;
-    sa.innerHTML=`<div style="text-align:center;opacity:.32"><div style="font-size:clamp(34px,10vw,50px);margin-bottom:7px">🔷</div><div style="font-size:12px;color:var(--text-dim)">Nhìn mắt yếu<br>chọn hình giống mẫu</div></div>`;
   }
   if (S.mode==='trace') {
     const cw=Math.min(S.fw-8,340), ch=Math.min(S.fh-8,380);
     wa.innerHTML=`<canvas class="trace-canvas" id="traceCanvas" width="${cw}" height="${ch}"></canvas>`;
-    sa.innerHTML=`<div style="text-align:center;opacity:.32;font-size:12px;color:var(--text-dim)">Theo dõi điểm sáng<br>bằng ngón tay</div>`;
   }
 }
 
