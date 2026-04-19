@@ -133,6 +133,27 @@ border-bottom:1px solid rgba(255,255,255,.06);z-index:10;gap:6px
 /* Trace */
 .trace-canvas{display:block;border-radius:14px;touch-action:none;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
 
+/* Therapy */
+.therapy-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.therapy-canvas{
+  display:block;border-radius:14px;touch-action:none;
+  background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.06),rgba(255,255,255,.01) 58%,rgba(0,0,0,.15));
+  border:1px solid rgba(255,255,255,.12)
+}
+.therapy-hint{font-size:12px;color:var(--text-dim);line-height:1.55;text-align:center;max-width:320px}
+.therapy-controls{display:grid;grid-template-columns:repeat(4,52px);gap:7px;justify-items:center}
+.therapy-btn{
+  width:52px;height:52px;border:none;border-radius:12px;cursor:pointer;
+  background:var(--surface2);color:var(--text);font-size:24px;font-weight:800
+}
+.therapy-btn:active{transform:scale(.94)}
+.therapy-btn.correct{background:rgba(6,214,160,.23);color:var(--green)}
+.therapy-btn.wrong{background:rgba(255,71,87,.22);color:#ff808d}
+.therapy-level{
+  font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent2);
+  background:rgba(255,209,102,.13);padding:6px 10px;border-radius:999px
+}
+
 /* Score pop */
 .score-pop{position:fixed;font-family:'Baloo 2',cursive;font-size:24px;font-weight:800;pointer-events:none;z-index:200;color:var(--accent2);animation:sPop .75s ease forwards}
 
@@ -245,6 +266,11 @@ border-bottom:1px solid rgba(255,255,255,.06);z-index:10;gap:6px
       <span class="mode-name">Nổ Bóng</span>
       <span class="mode-desc">Bóng xuất hiện ngẫu nhiên</span>
     </div>
+    <div class="mode-card" data-mode="therapy" >
+      <span class="mode-icon">🧿</span>
+      <span class="mode-name">Kích Thích</span>
+      <span class="mode-desc">Hiệu ứng tương phản nâng cao</span>
+    </div>
   </div>
 
 <button class="btn-start" id="startBtn">▶ Bắt đầu luyện tập!</button>
@@ -307,7 +333,8 @@ const S = {
   score:0, hits:0, attempts:0,
   duration:120, remaining:120,
   tInterval:null, gLoop:null, pzAnswer:null,
-  fw:160, fh:260
+  fw:160, fh:260,
+  therapyLevel:1, therapyStreak:0
 };
 
 // Đồng bộ chiều cao thực để tránh tụt layout khi thanh địa chỉ mobile co giãn
@@ -374,6 +401,7 @@ function startGame() {
     startTimer();
     if (S.mode==='catch'||S.mode==='pop') startTargets();
     if (S.mode==='trace')  startTrace();
+    if (S.mode==='therapy') startTherapy();
     if (S.mode==='puzzle') nextPuzzle();
   });
 }
@@ -409,6 +437,21 @@ function buildUI() {
   if (S.mode==='trace') {
     const cw=Math.min(S.fw-8,340), ch=Math.min(S.fh-8,380);
     wa.innerHTML=`<canvas class="trace-canvas" id="traceCanvas" width="${cw}" height="${ch}"></canvas>`;
+  }
+  if (S.mode==='therapy') {
+    const cw=Math.min(S.fw-8,360), ch=Math.min(S.fh-44,390);
+    wa.innerHTML=`
+      <div class="therapy-wrap">
+        <div class="therapy-level" id="therapyLevel">Mức kích thích 1</div>
+        <canvas class="therapy-canvas" id="therapyCanvas" width="${cw}" height="${ch}"></canvas>
+        <div class="therapy-controls">
+          <button class="therapy-btn" data-dir="up">↑</button>
+          <button class="therapy-btn" data-dir="right">→</button>
+          <button class="therapy-btn" data-dir="down">↓</button>
+          <button class="therapy-btn" data-dir="left">←</button>
+        </div>
+        <p class="therapy-hint">Xác định khe hở vòng tròn theo hướng đúng. Tốc độ và độ nhiễu sẽ tăng dần để luyện tập mắt yếu.</p>
+      </div>`;
   }
 }
 
@@ -488,6 +531,8 @@ function pickPuzzle(el,chosen){
 // ── TRACE ──
 let tCtx=null, tRaf=null, tw=280, th=320;
 let dot={x:140,y:160,vx:2.2,vy:1.6};
+let thCtx=null, thRaf=null, thw=280, thh=320;
+let therapyState={targetDir:'up',angle:0,speed:0.02,gap:65,noise:24,pulse:0};
 
 function startTrace(){
   const cv=$('traceCanvas'); if(!cv) return;
@@ -535,6 +580,88 @@ function checkTrace(fx,fy){
   }
 }
 
+// ── THERAPY ──
+const DIR_ANGLE = { right:0, down:Math.PI/2, left:Math.PI, up:Math.PI*1.5 };
+const THERAPY_DIRS = ['up','right','down','left'];
+
+function startTherapy(){
+  const cv=$('therapyCanvas'); if(!cv) return;
+  thw=cv.width; thh=cv.height;
+  thCtx=cv.getContext('2d');
+  S.therapyLevel=1; S.therapyStreak=0;
+  nextTherapyTarget();
+  document.querySelectorAll('.therapy-btn').forEach(btn=>{
+    btn.addEventListener('pointerdown',()=>hitTherapy(btn.dataset.dir,btn));
+  });
+  therapyLoop();
+}
+
+function nextTherapyTarget(){
+  if (S.mode!=='therapy' || !$('game').classList.contains('active')) return;
+  therapyState.targetDir = THERAPY_DIRS[Math.floor(Math.random()*THERAPY_DIRS.length)];
+  const lvlBoost = Math.max(0, S.therapyLevel - 1);
+  therapyState.speed = 0.02 + lvlBoost * 0.005;
+  therapyState.gap = Math.max(34, 66 - lvlBoost * 4);
+  therapyState.noise = Math.min(85, 24 + lvlBoost * 5);
+  therapyState.pulse = 0;
+  const lv = $('therapyLevel');
+  if (lv) lv.textContent = `Mức kích thích ${S.therapyLevel}`;
+  S.attempts++;
+}
+
+function hitTherapy(dir, btn){
+  if(!btn) return;
+  document.querySelectorAll('.therapy-btn').forEach(b=>b.classList.remove('correct','wrong'));
+  if(dir===therapyState.targetDir){
+    S.hits++; S.score += 20; S.therapyStreak++; updHdr();
+    btn.classList.add('correct');
+    pop(window.innerWidth/2, window.innerHeight*.62, '+20');
+    if (S.therapyStreak % 3 === 0) S.therapyLevel = Math.min(8, S.therapyLevel + 1);
+  } else {
+    S.therapyStreak = 0;
+    S.therapyLevel = Math.max(1, S.therapyLevel - 1);
+    btn.classList.add('wrong');
+  }
+  setTimeout(nextTherapyTarget, 360);
+}
+
+function therapyLoop(){
+  thRaf=requestAnimationFrame(therapyLoop);
+  if(!thCtx) return;
+  const c=thCtx;
+  c.clearRect(0,0,thw,thh);
+  therapyState.pulse += 0.03 + (S.therapyLevel * 0.003);
+  const cx=thw/2, cy=thh/2;
+  const pulse = (Math.sin(therapyState.pulse)+1)/2;
+  const ringR = Math.min(thw,thh)*0.26;
+  const flickAlpha = 0.12 + pulse*0.26;
+
+  c.fillStyle = `rgba(255,255,255,${flickAlpha*0.2})`;
+  c.fillRect(0,0,thw,thh);
+
+  // Nhiễu nhẹ giúp tăng khả năng phân biệt tương phản.
+  for(let i=0;i<therapyState.noise;i++){
+    const x=Math.random()*thw, y=Math.random()*thh;
+    const s=1+Math.random()*2.4;
+    c.fillStyle = `rgba(255,255,255,${0.08 + Math.random()*0.22})`;
+    c.fillRect(x,y,s,s);
+  }
+
+  therapyState.angle += therapyState.speed;
+  const gapStart = DIR_ANGLE[therapyState.targetDir] + therapyState.angle;
+  const gapSize = therapyState.gap * Math.PI / 180;
+  c.beginPath();
+  c.lineWidth = 20;
+  c.strokeStyle = `rgba(255,209,102,${0.72 + pulse*0.22})`;
+  c.arc(cx,cy,ringR,gapStart+gapSize/2,gapStart-gapSize/2+Math.PI*2,false);
+  c.stroke();
+
+  c.beginPath();
+  c.fillStyle = `rgba(78,205,196,${0.48 + pulse*0.35})`;
+  c.arc(cx,cy,8 + pulse*5,0,Math.PI*2);
+  c.fill();
+}
+
 // ── SCORE POP ──
 function pop(x,y,txt){
   const e=document.createElement('div');
@@ -564,6 +691,7 @@ function endSession(){
 function clearSess(){
   clearInterval(S.tInterval); clearInterval(S.gLoop);
   cancelAnimationFrame(tRaf); tCtx=null; tRaf=null;
+  cancelAnimationFrame(thRaf); thCtx=null; thRaf=null;
 }
 
 // ── RESIZE ──
@@ -576,6 +704,8 @@ window.addEventListener('resize',()=>{
     const fs=fieldSize(); setField(fs.w,fs.h);
     const cv=$('traceCanvas');
     if(cv&&tCtx){const nw=Math.min(fs.w-8,340),nh=Math.min(fs.h-8,380);cv.width=nw;cv.height=nh;tw=nw;th=nh}
+    const thcv=$('therapyCanvas');
+    if(thcv&&thCtx){const nw=Math.min(fs.w-8,360),nh=Math.min(fs.h-44,390);thcv.width=nw;thcv.height=nh;thw=nw;thh=nh}
   },130);
 });
 window.addEventListener('orientationchange', syncAppHeight);
